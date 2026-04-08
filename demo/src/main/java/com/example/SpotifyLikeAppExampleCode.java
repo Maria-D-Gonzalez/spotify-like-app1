@@ -20,7 +20,7 @@ public class SpotifyLikeAppExampleCode {
   /*replaced path
     */
 
-  private static String directoryPath =
+  private static final String DIRECTORY_PATH =
     "C:\\Users\\maria\\OneDrive\\Documents\\GitHub\\spotify-like-app1\\demo\\src\\main\\java\\com\\example";
 
   // "main" makes this class a java app that can be executed
@@ -29,24 +29,21 @@ public class SpotifyLikeAppExampleCode {
     Song[] library = readAudioLibrary();
 
     // create a scanner for user input
-    Scanner input = new Scanner(System.in);
+    try (Scanner input = new Scanner(System.in)) {
+      String userInput = "";
+      while (!userInput.equals("q")) {
+        menu();
 
-    String userInput = "";
-    while (!userInput.equals("q")) {
-      menu();
+        // get input
+        userInput = input.nextLine();
 
-      // get input
-      userInput = input.nextLine();
+        // accept upper or lower case commands
+        userInput = userInput.toLowerCase();
 
-      // accept upper or lower case commands
-      userInput = userInput.toLowerCase();
-
-      // do something
-      handleMenu(userInput, library);
+        // do something
+        handleMenu(userInput, library);
+      }
     }
-
-    // close the scanner
-    input.close();
   }
 
   /*
@@ -59,6 +56,7 @@ public class SpotifyLikeAppExampleCode {
     System.out.println("[L]ibrary");
     System.out.println("[P]lay");
     System.out.println("[Q]uit");
+    System.out.println("[T]pause");
 
     System.out.println("");
     System.out.print("Enter q to Quit:");
@@ -69,24 +67,13 @@ public class SpotifyLikeAppExampleCode {
    */
   public static void handleMenu(String userInput, Song[] library) {
     switch (userInput) {
-      case "h":
-        System.out.println("-->Home<--");
-        break;
-      case "s":
-        System.out.println("-->Search by title<--");
-        break;
-      case "l":
-        System.out.println("-->Library<--");
-        break;
-      case "p":
-        System.out.println("-->Play<--");
-        play(library);
-        break;
-      case "q":
-        System.out.println("-->Quit<--");
-        break;
-      default:
-        break;
+      case "h" -> System.out.println("-->Home<--");
+      case "s" -> System.out.println("-->Search by title<--");
+      case "l" -> System.out.println("-->Library<--");
+      case "p" -> play(library);
+      case "q" -> System.out.println("-->Quit<--");
+      case "t" -> System.out.println("-->Pause<--");
+      default -> {}
     }
   }
 
@@ -99,7 +86,7 @@ public class SpotifyLikeAppExampleCode {
     // get the filePath and open a audio file
     final Integer i = 3;
     final String filename = library[i].fileName();
-    final String filePath = directoryPath + "/wav/" + filename;
+    final String filePath = DIRECTORY_PATH + "/wav/" + filename;
     final File file = new File(filePath);
 
     // stop the current song from playing, before playing the next one
@@ -117,8 +104,10 @@ public class SpotifyLikeAppExampleCode {
       audioClip.open(in);
       audioClip.setMicrosecondPosition(0);
       audioClip.loop(Clip.LOOP_CONTINUOUSLY);
-    } catch (Exception e) {
-      e.printStackTrace();
+    } catch (javax.sound.sampled.UnsupportedAudioFileException | 
+             java.io.IOException | 
+             javax.sound.sampled.LineUnavailableException e) {
+      System.err.println("ERROR: Failed to play audio file: " + e.getMessage());
     }
   }
 
@@ -126,14 +115,14 @@ public class SpotifyLikeAppExampleCode {
   public static Song[] readAudioLibrary() {
     // get the file path
     final String jsonFileName = "audio-library.json";
-    final String filePath = directoryPath + "/" + jsonFileName;
+    final String filePath = DIRECTORY_PATH + "/" + jsonFileName;
 
     Song[] library = null;
     try {
       System.out.println("Reading the file " + filePath);
       JsonReader reader = new JsonReader(new FileReader(filePath));
       library = new Gson().fromJson(reader, Song[].class);
-    } catch (Exception e) {
+    } catch (java.io.IOException | com.google.gson.JsonSyntaxException e) {
       System.out.printf("ERROR: unable to read the file %s\n", filePath);
       System.out.println();
     }

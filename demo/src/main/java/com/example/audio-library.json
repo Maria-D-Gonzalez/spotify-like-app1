@@ -23,11 +23,75 @@
     "name": "Industry Baby",
     "artist": "Lil Nas X",
     "fileName": "lil-nas-x-crop.wav"
-  
-    "name": "",
-    "artist": "",
-    "fileName": ""
-    "year": 2026
-    
+  },
+  {
+    "name": "Flushed",
+    "artist": "Ketsa",
+    "fileName": "Ketsa-Flushed.wav",
+    "year": 2026,
+    "genre": "Jazz"
+  },
+  {
+    "name": "Them",
+    "artist": "Ketsa",
+    "fileName": "Ketsa-Them.wav",
+    "year": 2026,
+    "genre": "Jazz"
+  },
+  {
+    "name": "Behind in front",
+    "artist": "Ketsa",
+    "fileName": "Ketsa-Behind-in-front.wav",
+    "year": 2026,
+    "genre": "Jazz"
+  },
+  {
+    "name": "Slow Hands Jazz",
+    "artist": "Ketsa",
+    "fileName": "Ketsa-Slow-Hands-Jazz.wav",
+    "year": 2026,
+    "genre": "Jazz"
+  },
+  {
+    "name": "Lotus Quiet", 
+    "artist": "Lopkerjo",
+    "fileName": "Lotus-Quiet.wav",
+    "year": 2026,
+    "genre": "Electronic"
+  },
+  {
+    "name": "Mist-in-the-Mountains-(Pure Felt Mix)",
+    "artist": "Maarten-Schellekens",
+    "fileName": "Mist-in-the-Mountains-(Pure-Felt-Mix).wav",
+    "year": 2026,
+    "genre": "Ambient"
+  },
+  {
+    "name": "01-Morning-Rays-Of-The-Sun",
+    "artist": "Maxim-Novak",
+    "fileName": "01-Morning-Rays-Of-The-Sun.wav",
+    "year": 2026,
+    "genre": "Rock"
+  },
+  {
+    "name": "Sing-On,-O-Heart-and-Voice",
+    "artist": "Pamela Yuen",
+    "fileName": "Sing-On,-O-Heart-and-Voice.wav",
+    "year": 2026,
+    "genre": "Instrumental"
+  },
+  {
+    "name": "You-&-Me",
+    "artist": "Pamela-Yuen",
+    "fileName": "You-&-Me.wav",
+    "year": 2026,
+    "genre": "Instrumental"
+  },
+  {
+    "name": "Shoot-Them-(later,-while-they're-sleeping)", 
+    "artist": "Smallpox",
+    "fileName": "Shoot-Them-(later,-while-they're-sleeping).wav",
+    "year": 2026,
+    "genre": "Rock"
   }
 ]
