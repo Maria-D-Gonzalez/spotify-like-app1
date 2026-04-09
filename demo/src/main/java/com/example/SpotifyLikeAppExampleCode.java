@@ -17,6 +17,9 @@ public class SpotifyLikeAppExampleCode {
   // the current audio clip
   private static Clip audioClip;
 
+  // track if audio is paused
+  private static boolean isPaused = false;
+
   /*replaced path
     */
 
@@ -72,8 +75,27 @@ public class SpotifyLikeAppExampleCode {
       case "l" -> System.out.println("-->Library<--");
       case "p" -> play(library);
       case "q" -> System.out.println("-->Quit<--");
-      case "t" -> System.out.println("-->Pause<--");
+      case "t" -> togglePause();
       default -> {}
+    }
+  }
+
+  /*
+   * toggles pause/resume for the audio
+   */
+  public static void togglePause() {
+    if (audioClip != null) {
+      if (isPaused) {
+        audioClip.start();
+        isPaused = false;
+        System.out.println("-->Resumed<--");
+      } else {
+        audioClip.stop();
+        isPaused = true;
+        System.out.println("-->Paused<--");
+      }
+    } else {
+      System.out.println("No audio is playing.");
     }
   }
 
@@ -104,6 +126,7 @@ public class SpotifyLikeAppExampleCode {
       audioClip.open(in);
       audioClip.setMicrosecondPosition(0);
       audioClip.loop(Clip.LOOP_CONTINUOUSLY);
+      isPaused = false;
     } catch (javax.sound.sampled.UnsupportedAudioFileException | 
              java.io.IOException | 
              javax.sound.sampled.LineUnavailableException e) {
@@ -128,5 +151,15 @@ public class SpotifyLikeAppExampleCode {
     }
 
     return library;
+  }
+
+  public static void playMP3(String path) {
+    try {
+      ProcessBuilder builder = new ProcessBuilder();
+      builder.command(new String[] { "cmd", "/c", "start", "", path });
+      builder.start();
+    } catch (java.io.IOException e) {
+      System.out.println("ERROR: Failed to play MP3 file: " + e.getMessage());
+    }
   }
 }

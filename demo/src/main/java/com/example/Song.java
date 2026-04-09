@@ -7,6 +7,7 @@ public class Song {
   private String fileName;
 
   // serializes attributes into a string
+  @Override
   public String toString() {
     String s;
 
