@@ -5,25 +5,14 @@ public class Song {
   private String name;
   private String artist;
   private String fileName;
+  private Integer year;
+  private String genre;
 
-  // serializes attributes into a string
   @Override
   public String toString() {
-    String s;
-
-    // since the object is complex, we return a JSON formatted string
-    s = "{ ";
-    s += "name: " + name;
-    s += ", ";
-    s += "artist: " + artist;
-    s += ", ";
-    s += "fileName: " + fileName;
-    s += " }";
-
-    return s;
+    return name + " — " + artist;
   }
 
-  // getters
   public String name() {
     return this.name;
   }
@@ -34,5 +23,13 @@ public class Song {
 
   public String fileName() {
     return this.fileName;
+  }
+
+  public Integer year() {
+    return this.year;
+  }
+
+  public String genre() {
+    return this.genre;
   }
 }

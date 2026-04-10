@@ -1,165 +1,296 @@
 package com.example;
 
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.io.File;
 import java.io.FileReader;
-import java.util.Scanner;
-
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Locale;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.border.EmptyBorder;
 
 import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
+import com.google.gson.JsonSyntaxException;
 
-// declares a class for the app
 public class SpotifyLikeAppExampleCode {
 
-  // the current audio clip
   private static Clip audioClip;
-
-  // track if audio is paused
   private static boolean isPaused = false;
+  private static long pausePosition = 0;
+  private static Song currentSong;
 
-  /*replaced path
-    */
-
-  private static final String DIRECTORY_PATH =
-    "C:\\Users\\maria\\OneDrive\\Documents\\GitHub\\spotify-like-app1\\demo\\src\\main\\java\\com\\example";
-
-  // "main" makes this class a java app that can be executed
   public static void main(final String[] args) {
-    // reading audio library from json file
     Song[] library = readAudioLibrary();
+    if (library == null || library.length == 0) {
+      System.err.println("Could not load the audio library. Check audio-library.json and the classpath.");
+      return;
+    }
 
-    // create a scanner for user input
-    try (Scanner input = new Scanner(System.in)) {
-      String userInput = "";
-      while (!userInput.equals("q")) {
-        menu();
+    SwingUtilities.invokeLater(() -> createAndShowGui(library));
+  }
 
-        // get input
-        userInput = input.nextLine();
+  @SuppressWarnings("Convert2Lambda")
+  private static void createAndShowGui(final Song[] library) {
+    JFrame frame = new JFrame("SpotifyLikeApp");
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.setLayout(new BorderLayout(10, 10));
+    frame.setMinimumSize(new Dimension(720, 520));
 
-        // accept upper or lower case commands
-        userInput = userInput.toLowerCase();
+    DefaultListModel<Song> listModel = new DefaultListModel<>();
+    Arrays.stream(library).forEach(listModel::addElement);
 
-        // do something
-        handleMenu(userInput, library);
+    JList<Song> songList = new JList<>(listModel);
+    songList.setSelectionMode(JList.WHEN_IN_FOCUSED_WINDOW);
+    songList.setCellRenderer(new DefaultListCellRenderer() {
+      @Override
+      public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+        super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+        if (value instanceof Song song) {
+          setText(song.name() + " — " + song.artist());
+        }
+        return this;
+      }
+    });
+    if (!listModel.isEmpty()) {
+      songList.setSelectedIndex(0);
+    }
+
+    JScrollPane listScroll = new JScrollPane(songList);
+    listScroll.setBorder(javax.swing.BorderFactory.createTitledBorder("Library"));
+    listScroll.setPreferredSize(new Dimension(700, 320));
+
+    JLabel infoLabel = new JLabel("Select a track and press Play.");
+    infoLabel.setBorder(new EmptyBorder(8, 8, 8, 8));
+
+    JTextField searchField = new JTextField(24);
+    JButton searchButton = new JButton("Search");
+    JButton clearButton = new JButton("Clear");
+    JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 8, 0));
+    searchPanel.add(new JLabel("Search:"));
+    searchPanel.add(searchField);
+    searchPanel.add(searchButton);
+    searchPanel.add(clearButton);
+
+    JButton playButton = new JButton("Play");
+    JButton pauseButton = new JButton("Pause");
+    JButton stopButton = new JButton("Stop");
+    JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 18, 0));
+    controlPanel.add(playButton);
+    controlPanel.add(pauseButton);
+    controlPanel.add(stopButton);
+
+    JPanel bottomPanel = new JPanel(new BorderLayout(0, 10));
+    bottomPanel.add(searchPanel, BorderLayout.NORTH);
+    bottomPanel.add(controlPanel, BorderLayout.CENTER);
+    bottomPanel.add(infoLabel, BorderLayout.SOUTH);
+
+    frame.add(listScroll, BorderLayout.CENTER);
+    frame.add(bottomPanel, BorderLayout.SOUTH);
+
+    searchButton.addActionListener(e -> filterLibrary(searchField.getText(), listModel, library));
+    clearButton.addActionListener(e -> {
+      searchField.setText("");
+      filterLibrary("", listModel, library);
+    });
+
+    songList.addListSelectionListener(new ListSelectionListener() {
+      @Override
+      public void valueChanged(ListSelectionEvent e) {
+        if (!e.getValueIsAdjusting()) {
+          Song selected = songList.getSelectedValue();
+          infoLabel.setText(selected != null ? formatSongInfo(selected) : "Select a track and press Play.");
+        }
+      }
+    });
+
+    playButton.addActionListener(e -> {
+      Song selected = songList.getSelectedValue();
+      if (selected == null) {
+        showMessage("Please select a track first.", "No Selection", frame);
+        return;
+      }
+      play(selected);
+      infoLabel.setText("Playing: " + formatSongInfo(selected));
+    });
+
+    pauseButton.addActionListener(e -> {
+      if (audioClip == null) {
+        showMessage("No audio is playing.", "Information", frame);
+        return;
+      }
+      togglePause();
+      infoLabel.setText(isPaused ? "Paused" : "Playing: " + formatSongInfo(currentSong));
+    });
+
+    stopButton.addActionListener(e -> {
+      stopAudio();
+      infoLabel.setText("Stopped.");
+    });
+
+    searchField.addActionListener(e -> searchButton.doClick());
+
+    frame.pack();
+    frame.setLocationRelativeTo(null);
+    frame.setVisible(true);
+  }
+
+  private static void filterLibrary(String query, DefaultListModel<Song> model, Song[] library) {
+    model.clear();
+    String lowerQuery = query == null ? "" : query.trim().toLowerCase(Locale.ROOT);
+    for (Song song : library) {
+      boolean matches = lowerQuery.isEmpty()
+        || song.name().toLowerCase(Locale.ROOT).contains(lowerQuery)
+        || song.artist().toLowerCase(Locale.ROOT).contains(lowerQuery)
+        || (song.genre() != null && song.genre().toLowerCase(Locale.ROOT).contains(lowerQuery));
+      if (matches) {
+        model.addElement(song);
       }
     }
   }
 
-  /*
-   * displays the menu for the app
-   */
-  public static void menu() {
-    System.out.println("---- SpotifyLikeApp ----");
-    System.out.println("[H]ome");
-    System.out.println("[S]earch by title");
-    System.out.println("[L]ibrary");
-    System.out.println("[P]lay");
-    System.out.println("[Q]uit");
-    System.out.println("[T]pause");
-
-    System.out.println("");
-    System.out.print("Enter q to Quit:");
-  }
-
-  /*
-   * handles the user input for the app
-   */
-  public static void handleMenu(String userInput, Song[] library) {
-    switch (userInput) {
-      case "h" -> System.out.println("-->Home<--");
-      case "s" -> System.out.println("-->Search by title<--");
-      case "l" -> System.out.println("-->Library<--");
-      case "p" -> play(library);
-      case "q" -> System.out.println("-->Quit<--");
-      case "t" -> togglePause();
-      default -> {}
+  private static String formatSongInfo(Song song) {
+    if (song == null) {
+      return "No track selected.";
     }
-  }
-
-  /*
-   * toggles pause/resume for the audio
-   */
-  public static void togglePause() {
-    if (audioClip != null) {
-      if (isPaused) {
-        audioClip.start();
-        isPaused = false;
-        System.out.println("-->Resumed<--");
-      } else {
-        audioClip.stop();
-        isPaused = true;
-        System.out.println("-->Paused<--");
-      }
-    } else {
-      System.out.println("No audio is playing.");
+    StringBuilder builder = new StringBuilder();
+    builder.append(song.name()).append(" — ").append(song.artist());
+    if (song.year() != null) {
+      builder.append(" (").append(song.year()).append(")");
     }
+    if (song.genre() != null && !song.genre().isBlank()) {
+      builder.append(" [").append(song.genre()).append("]");
+    }
+    return builder.toString();
   }
 
-  /*
-   * plays an audio file
-   */
-  public static void play(Song[] library) {
-    // open the audio file
+  private static void play(Song song) {
+    URL audioUrl = getAudioResource(song.fileName());
+    if (audioUrl == null) {
+      System.err.println("Unable to locate audio file: " + song.fileName());
+      return;
+    }
 
-    // get the filePath and open a audio file
-    final Integer i = 3;
-    final String filename = library[i].fileName();
-    final String filePath = DIRECTORY_PATH + "/wav/" + filename;
-    final File file = new File(filePath);
-
-    // stop the current song from playing, before playing the next one
     if (audioClip != null) {
+      audioClip.stop();
       audioClip.close();
     }
 
-    try {
-      // create clip
+    try (AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioUrl)) {
       audioClip = AudioSystem.getClip();
-
-      // get input stream
-      final AudioInputStream in = AudioSystem.getAudioInputStream(file);
-
-      audioClip.open(in);
+      audioClip.open(audioStream);
       audioClip.setMicrosecondPosition(0);
       audioClip.loop(Clip.LOOP_CONTINUOUSLY);
       isPaused = false;
-    } catch (javax.sound.sampled.UnsupportedAudioFileException | 
-             java.io.IOException | 
-             javax.sound.sampled.LineUnavailableException e) {
+      pausePosition = 0;
+      currentSong = song;
+    } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
       System.err.println("ERROR: Failed to play audio file: " + e.getMessage());
     }
   }
 
-  // read the audio library of music
-  public static Song[] readAudioLibrary() {
-    // get the file path
-    final String jsonFileName = "audio-library.json";
-    final String filePath = DIRECTORY_PATH + "/" + jsonFileName;
-
-    Song[] library = null;
-    try {
-      System.out.println("Reading the file " + filePath);
-      JsonReader reader = new JsonReader(new FileReader(filePath));
-      library = new Gson().fromJson(reader, Song[].class);
-    } catch (java.io.IOException | com.google.gson.JsonSyntaxException e) {
-      System.out.printf("ERROR: unable to read the file %s\n", filePath);
-      System.out.println();
+  public static void togglePause() {
+    if (audioClip == null) {
+      return;
     }
+    if (isPaused) {
+      audioClip.setMicrosecondPosition(pausePosition);
+      audioClip.start();
+      isPaused = false;
+    } else {
+      pausePosition = audioClip.getMicrosecondPosition();
+      audioClip.stop();
+      isPaused = true;
+    }
+  }
 
+  public static void stopAudio() {
+    if (audioClip != null) {
+      audioClip.stop();
+      audioClip.close();
+      audioClip = null;
+      isPaused = false;
+      pausePosition = 0;
+      currentSong = null;
+    }
+  }
+
+  public static Song[] readAudioLibrary() {
+    Song[] library = null;
+    try (InputStream stream = SpotifyLikeAppExampleCode.class.getResourceAsStream("/com/example/audio-library.json")) {
+      if (stream != null) {
+        library = new Gson().fromJson(new InputStreamReader(stream, StandardCharsets.UTF_8), Song[].class);
+      } else {
+        library = readAudioLibraryFromFile();
+      }
+    } catch (IOException | JsonSyntaxException e) {
+      System.err.println("ERROR: unable to read the audio library: " + e.getMessage());
+    }
     return library;
   }
 
-  public static void playMP3(String path) {
-    try {
-      ProcessBuilder builder = new ProcessBuilder();
-      builder.command(new String[] { "cmd", "/c", "start", "", path });
-      builder.start();
-    } catch (java.io.IOException e) {
-      System.out.println("ERROR: Failed to play MP3 file: " + e.getMessage());
+  private static Song[] readAudioLibraryFromFile() {
+    File file = new File("demo/src/main/java/com/example/audio-library.json");
+    if (!file.isFile()) {
+      file = new File("src/main/java/com/example/audio-library.json");
     }
+    if (!file.isFile()) {
+      System.err.println("ERROR: audio-library.json not found in expected paths.");
+      return null;
+    }
+
+    try (Reader reader = new FileReader(file, StandardCharsets.UTF_8)) {
+      return new Gson().fromJson(reader, Song[].class);
+    } catch (IOException | JsonSyntaxException e) {
+      System.err.println("ERROR: unable to read the audio library from file: " + e.getMessage());
+      return null;
+    }
+  }
+
+  private static URL getAudioResource(String fileName) {
+    String resourcePath = "/com/example/wav/" + fileName;
+    URL resource = SpotifyLikeAppExampleCode.class.getResource(resourcePath);
+    if (resource != null) {
+      return resource;
+    }
+
+    File file = new File("demo/src/main/java/com/example/wav", fileName);
+    if (!file.isFile()) {
+      file = new File("src/main/java/com/example/wav", fileName);
+    }
+    try {
+      return file.isFile() ? file.toURI().toURL() : null;
+    } catch (MalformedURLException e) {
+      return null;
+    }
+  }
+
+  private static void showMessage(String message, String title, Component parent) {
+    JOptionPane.showMessageDialog(parent, message, title, JOptionPane.INFORMATION_MESSAGE);
   }
 }
