@@ -15,6 +15,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Locale;
+
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
@@ -31,9 +32,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.border.EmptyBorder;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -57,7 +58,8 @@ public class SpotifyLikeAppExampleCode {
 
   @SuppressWarnings("Convert2Lambda")
   private static void createAndShowGui(final Song[] library) {
-    JFrame frame = new JFrame("SpotifyLikeApp");
+    /*changed the title of app */
+    JFrame frame = new JFrame("Music Player");
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.setLayout(new BorderLayout(10, 10));
     frame.setMinimumSize(new Dimension(720, 520));
@@ -91,23 +93,28 @@ public class SpotifyLikeAppExampleCode {
     JTextField searchField = new JTextField(24);
     JButton searchButton = new JButton("Search");
     JButton clearButton = new JButton("Clear");
+    JButton FavoriteButton = new JButton("Favorite");
     JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 8, 0));
     searchPanel.add(new JLabel("Search:"));
     searchPanel.add(searchField);
     searchPanel.add(searchButton);
+    searchPanel.add(FavoriteButton);
     searchPanel.add(clearButton);
 
     JButton playButton = new JButton("Play");
     JButton pauseButton = new JButton("Pause");
     JButton stopButton = new JButton("Stop");
+    JButton favoriteButton = new JButton("Favorite");
     JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 18, 0));
     controlPanel.add(playButton);
     controlPanel.add(pauseButton);
     controlPanel.add(stopButton);
+    controlPanel.add(favoriteButton);
 
     JPanel bottomPanel = new JPanel(new BorderLayout(0, 10));
     bottomPanel.add(searchPanel, BorderLayout.NORTH);
     bottomPanel.add(controlPanel, BorderLayout.CENTER);
+    bottomPanel.add(controlPanel, BorderLayout.EAST);
     bottomPanel.add(infoLabel, BorderLayout.SOUTH);
 
     frame.add(listScroll, BorderLayout.CENTER);
@@ -118,7 +125,15 @@ public class SpotifyLikeAppExampleCode {
       searchField.setText("");
       filterLibrary("", listModel, library);
     });
-
+    favoriteButton.addActionListener(e -> {
+      Song selected = songList.getSelectedValue();
+      if (selected == null) {
+        showMessage("Please select a track to favorite.", "No Selection", frame);
+        return;
+      }
+      showMessage("Added to favorites: " + formatSongInfo(selected), "Favorite Added", frame);
+    });
+    
     songList.addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
