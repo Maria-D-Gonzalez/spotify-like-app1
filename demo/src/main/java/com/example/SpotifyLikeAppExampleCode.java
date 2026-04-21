@@ -45,8 +45,9 @@ public class SpotifyLikeAppExampleCode {
   private static boolean isPaused = false;
   private static long pausePosition = 0;
   private static Song currentSong;
-
-  public static void main(final String[] args) {
+    private static Song[] favorites;
+  /*UI */
+  public static void main1(final String[] args) {
     Song[] library = readAudioLibrary();
     if (library == null || library.length == 0) {
       System.err.println("Could not load the audio library. Check audio-library.json and the classpath.");
@@ -55,10 +56,9 @@ public class SpotifyLikeAppExampleCode {
 
     SwingUtilities.invokeLater(() -> createAndShowGui(library));
   }
-
   @SuppressWarnings("Convert2Lambda")
   private static void createAndShowGui(final Song[] library) {
-    /*changed the title of app */
+      /*changed the title of app */
     JFrame frame = new JFrame("Music Player");
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.setLayout(new BorderLayout(10, 10));
@@ -93,7 +93,7 @@ public class SpotifyLikeAppExampleCode {
     JTextField searchField = new JTextField(24);
     JButton searchButton = new JButton("Search");
     JButton clearButton = new JButton("Clear");
-    JButton FavoriteButton = new JButton("Favorite");
+    JButton FavoriteButton = new JButton("Favorites");
     JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 8, 0));
     searchPanel.add(new JLabel("Search:"));
     searchPanel.add(searchField);
@@ -104,7 +104,7 @@ public class SpotifyLikeAppExampleCode {
     JButton playButton = new JButton("Play");
     JButton pauseButton = new JButton("Pause");
     JButton stopButton = new JButton("Stop");
-    JButton favoriteButton = new JButton("Favorite");
+    JButton favoriteButton = new JButton("Favorites");
     JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 18, 0));
     controlPanel.add(playButton);
     controlPanel.add(pauseButton);
@@ -307,5 +307,11 @@ public class SpotifyLikeAppExampleCode {
 
   private static void showMessage(String message, String title, Component parent) {
     JOptionPane.showMessageDialog(parent, message, title, JOptionPane.INFORMATION_MESSAGE);
+  
+class public static void main(final String[] args) {
+    if (library == null || library.length == 0) {
+    }
+
+    SwingUtilities.invokeLater(() -> createAndShowGui(favorites))
+    ;
   }
-}
