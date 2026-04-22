@@ -308,10 +308,16 @@ public class SpotifyLikeAppExampleCode {
   private static void showMessage(String message, String title, Component parent) {
     JOptionPane.showMessageDialog(parent, message, title, JOptionPane.INFORMATION_MESSAGE);
   
-class public static void main(final String[] args) {
-    if (library == null || library.length == 0) {
+  }
+  public static void main(final String[] args) {
+    if (favorites == null || favorites.length == 0) {
     }
 
-    SwingUtilities.invokeLater(() -> createAndShowGui(favorites))
+    SwingUtilities.invokeLater(() -> ShowGui(favorites))
     ;
   }
+
+    private static void ShowGui(Song[] favorites) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+}
