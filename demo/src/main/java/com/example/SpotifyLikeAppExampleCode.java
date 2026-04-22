@@ -58,7 +58,7 @@ public class SpotifyLikeAppExampleCode {
   }
   @SuppressWarnings("Convert2Lambda")
   private static void createAndShowGui(final Song[] library) {
-      /*changed the title of app */
+   /*changed the title of app */
     JFrame frame = new JFrame("Music Player");
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.setLayout(new BorderLayout(10, 10));
@@ -317,7 +317,8 @@ public class SpotifyLikeAppExampleCode {
     ;
   }
 
-    private static void ShowGui(Song[] favorites) {
+    private static void ShowGui(@SuppressWarnings("unused") Song[] favorites) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 }
+  
