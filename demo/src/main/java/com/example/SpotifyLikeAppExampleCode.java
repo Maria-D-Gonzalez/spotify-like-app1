@@ -32,6 +32,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.UIClientPropertyKey;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -319,6 +320,10 @@ public class SpotifyLikeAppExampleCode {
 
     private static void ShowGui(@SuppressWarnings("unused") Song[] favorites) {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+    {
+      run(.class);
+      
     }
 }
   
