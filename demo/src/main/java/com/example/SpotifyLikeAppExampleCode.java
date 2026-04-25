@@ -32,7 +32,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.swing.UIClientPropertyKey;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -48,7 +47,7 @@ public class SpotifyLikeAppExampleCode {
   private static Song currentSong;
     private static Song[] favorites;
   /*UI */
-  public static void main1(final String[] args) {
+  public static void main(final String[] args) {
     Song[] library = readAudioLibrary();
     if (library == null || library.length == 0) {
       System.err.println("Could not load the audio library. Check audio-library.json and the classpath.");
@@ -310,20 +309,5 @@ public class SpotifyLikeAppExampleCode {
     JOptionPane.showMessageDialog(parent, message, title, JOptionPane.INFORMATION_MESSAGE);
   
   }
-  public static void main(final String[] args) {
-    if (favorites == null || favorites.length == 0) {
-    }
-
-    SwingUtilities.invokeLater(() -> ShowGui(favorites))
-    ;
-  }
-
-    private static void ShowGui(@SuppressWarnings("unused") Song[] favorites) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-    {
-      run(.class);
-      
-    }
 }
   
